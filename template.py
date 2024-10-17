@@ -10,14 +10,13 @@ list_of_files=[
     "src/__init__.py",     
     "src/helper.py",
     "src/prompt/py",
-    ".env",
     "setup.py",
     "research/trials.ipynb",
     "app.py",
     "store_index.py",
     "static/.gitkeep",#for flask
     "templates/chat.html",
-    "test.py"
+   
 
 ]
 
