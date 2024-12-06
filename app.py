@@ -17,6 +17,8 @@ load_dotenv()
 PINECONE_API_KEY=os.environ.get('PINECONE_API_KEY')
 PINECONE_API_ENV=os.environ.get('PINECONE_API_ENV')
 
+os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
+os.environ["OPENAI_API_KEY"] = OPENAI_AP
 
 #download the embeddings
 embeddings=download_hugging_face_embeddings()
@@ -26,47 +28,45 @@ pinecone.init(api_key=PINECONE_API_KEY,
               environment=PINECONE_API_ENV)
 
 #give index name
-index_name="medical--chatbot"
+index_name="medichatbot"
 
 
-#loading the index
-docsearch=Pinecone.from_existing_index(index_name,embeddings)
-
-# creating the prompt template
-PROMPT=PromptTemplate(template=prompt_template,input_variables=["context","question"])
-chain_type_kwargs={"prompt":PROMPT}
-
-#load my llama model and give the path
-llm=CTransformers(model="model/llama-2-7b-chat.ggmlv3.q4_0.bin"
-                  model_type="llama",
-                  config={'max_new_tokens':512,
-                          'temperature':0.8
-                          })
-
-
-#create my qustion answer object amd it will give 2 answer
-qa=RetrievalQA.from_chain_type(
-    llm=llm,
-    chain_type="stuff",
-    retriever=docsearch.as_retriever(search_kwargs={'k':2}),
-    return_source_documents=True,
-    chain_type_kwargs=chain_type_kwargs
-
+# Embed each chunk and upsert the embeddings into your Pinecone index.
+docsearch = PineconeVectorStore.from_existing_index(
+    index_name=index_name,
+    embedding=embeddings
 )
+
+retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":3})
+
+
+llm = OpenAI(temperature=0.4, max_tokens=500)
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", system_prompt),
+        ("human", "{input}"),
+    ]
+)
+
+question_answer_chain = create_stuff_documents_chain(llm, prompt)
+rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+
 
 @app.route("/")
 def index():
     return render_template('chat.html')   #it will open the chat.html file
 
+
 #final route
-app.route("/get", methods=["GET", "POST"])
+@app.route("/get", methods=["GET", "POST"])
 def chat():
-    msg = request.form["msg"]  #when user  will give msg . msg is taking in backedn
-    input = msg  #set the msg inninput variable
+    msg = request.form["msg"] #when user  will give msg . msg is taking in backedn
+    input = msg #set the msg inninput variable
     print(input)  #print the msg
-    result=qa({"query": input})  #sending the msg to qa object which we defind
-    print("Response : ", result["result"])  #give the response
-    return str(result["result"]) #response print in my terminal as well as send to my UI
+    response = rag_chain.invoke({"input": msg})   #sending the msg to qa object which we defind
+    print("Response : ", response["answer"])  #give the response
+    return str(response["answer"])  #response print in my terminal as well as send to my UI
+
 
 
 
