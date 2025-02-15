@@ -23,7 +23,7 @@ list_of_files=[
 #how to create all this files -->shown below
 #writing the code for that
 for filepath in list_of_files:
-    filepath=Path(filepath) #convert filepath into path
+    filepath=Path(filepath) #convert filepath into path(depends on machine it will forward or backward)
 
      # separate folder and file
     filedir,filename=os.path.split(filepath)
