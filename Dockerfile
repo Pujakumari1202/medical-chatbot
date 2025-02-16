@@ -1,13 +1,18 @@
+# Use official Python image
 FROM python:3.10
 
-RUN useradd -m -u 1000 user
-USER user
-ENV PATH="/home/user/.local/bin:$PATH"
-
+# Set working directory
 WORKDIR /app
 
-COPY --chown=user ./requirements.txt requirements.txt
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
+# Copy all files
+COPY . .
 
-COPY --chown=user . /app
+# Install dependencies
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+# Expose port 7860 (Hugging Face default)
+EXPOSE 7860
+
+# Run the Flask app
 CMD ["python", "app.py"]
