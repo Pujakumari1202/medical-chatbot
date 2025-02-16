@@ -1,35 +1,28 @@
 from flask import Flask, render_template, jsonify, request
 from src.helper import download_hugging_face_embeddings
-from langchain.vectorstores import Pinecone
-import pinecone
-from langchain.prompts import PromptTemplate
-from langchain.llms import CTransformers
-from langchain.chains import RetrievalQA
+from langchain_pinecone import PineconeVectorStore
+from langchain_openai import OpenAI
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.prompts import ChatPromptTemplate
 from dotenv import load_dotenv
 from src.prompt import *
 import os
 
-#initializing the flask
-app=Flask(__name__)
+app = Flask(__name__)
 
 load_dotenv()
 
 PINECONE_API_KEY=os.environ.get('PINECONE_API_KEY')
-PINECONE_API_ENV=os.environ.get('PINECONE_API_ENV')
+OPENAI_API_KEY=os.environ.get('OPENAI_API_KEY')
 
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
-os.environ["OPENAI_API_KEY"] = OPENAI_AP
+os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
-#download the embeddings
-embeddings=download_hugging_face_embeddings()
+embeddings = download_hugging_face_embeddings()
 
-#Initializing the Pinecone
-pinecone.init(api_key=PINECONE_API_KEY,
-              environment=PINECONE_API_ENV)
 
-#give index name
-index_name="medichatbot"
-
+index_name = "medicalbot"
 
 # Embed each chunk and upsert the embeddings into your Pinecone index.
 docsearch = PineconeVectorStore.from_existing_index(
@@ -51,24 +44,23 @@ prompt = ChatPromptTemplate.from_messages(
 question_answer_chain = create_stuff_documents_chain(llm, prompt)
 rag_chain = create_retrieval_chain(retriever, question_answer_chain)
 
-
+# Default raoute to index(UI)
 @app.route("/")
 def index():
-    return render_template('chat.html')   #it will open the chat.html file
+    return render_template('chat.html')
 
-
-#final route
+# Query the chatbot
 @app.route("/get", methods=["GET", "POST"])
 def chat():
-    msg = request.form["msg"] #when user  will give msg . msg is taking in backedn
-    input = msg #set the msg inninput variable
-    print(input)  #print the msg
-    response = rag_chain.invoke({"input": msg})   #sending the msg to qa object which we defind
-    print("Response : ", response["answer"])  #give the response
-    return str(response["answer"])  #response print in my terminal as well as send to my UI
+    msg = request.form["msg"]
+    input = msg
+    print(input)
+    response = rag_chain.invoke({"input": msg})
+    print("Response : ", response["answer"])
+    return str(response["answer"])
 
 
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",port=8080,debug=True)
+    app.run(host="0.0.0.0", port= 8080, debug= True)
