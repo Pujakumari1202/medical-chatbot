@@ -1,11 +1,10 @@
 sentence-transformers==2.2.2
-langchain
+langchain==0.2.2  # Pin to a stable version
 flask
 pypdf
 python-dotenv
 pinecone-client  # Keep only this for Pinecone
-langchain-pinecone
 langchain_community
 langchain_openai
 langchain_experimental
--e .
+-e.
