@@ -3,11 +3,11 @@
 ### STEP 01- Create a conda environment after opening the repository
 
 ```bash
-conda create --name medibot python=3.10 -y
+conda create --name medicaltbot python=3.10 -y
 ```
 
 ```bash
-conda activate medibot
+conda activate medicalbot
 ```
 
 

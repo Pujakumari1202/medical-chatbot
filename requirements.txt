@@ -3,8 +3,9 @@ langchain
 flask
 pypdf
 python-dotenv
-pinecone[grpc]
+pinecone-client  # Keep only this for Pinecone
 langchain-pinecone
 langchain_community
 langchain_openai
 langchain_experimental
+-e .
