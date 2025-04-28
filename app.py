@@ -34,6 +34,11 @@ retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":
 
 
 llm = OpenAI(temperature=0.4, max_tokens=500)
+
+# from langchain_openai import ChatOpenAI
+
+# llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.4, max_tokens=500)
+
 prompt = ChatPromptTemplate.from_messages(
     [
         ("system", system_prompt),
